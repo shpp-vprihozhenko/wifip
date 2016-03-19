@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login to wifi-devices control panel</title>
+    <style>
+      body{
+        width: 80%;
+        height: 80%;
+        margin-left: auto;
+        margin-right: auto;
+        text-align: center;
+        background: lightblue;
+        /*background: lightblue url("http://apkis.net/uploads/posts/2014-08/1408436284-30711.png") no-repeat center;*/
+      }
+      .btn{
+        width: 15em;
+        margin: auto;
+        height: 3em;
+        line-height: 3em;
+        color: blue;
+        background-color: greenyellow;
+        vertical-align: middle;
+        text-align: center;
+        cursor: pointer;
+        margin-top: 1em;
+        border-style: outset;
+      }
+      input{
+        margin-top: 0.5em;
+        margin-bottom: 0.5em;
+      }
+      .hovered {
+        cursor: pointer;
+      }
+      table {
+        text-align:center;
+        background-color: #abef98;
+        border-style: solid;
+        border-color: black;
+        /*border-radius: 1em;*/
+        border-collapse: collapse;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      table td, th {
+        border-style: solid;
+        border-color: black;
+      }
+      .switchOn {
+        width: 30px;
+        height: 30px;
+        background: url("http://images.clipshrine.com/download/wheel/large-Power-On-Off-Switch-red-2-166.6-14387.png") no-repeat center;
+        background-size: 30px;
+        margin: auto;
+      }
+      .switchOff {
+        width: 30px;
+        height: 30px;
+        background: url("http://2014.igem.org/wiki/images/c/c2/Heidelberg_Toolbox_On-Off.png") no-repeat center;
+        background-size: 30px;
+        margin: auto;
+      }
+    </style>
+</head>
+<body>
+<h2>
+<div class="header">Login to wifi-devices control panel:</div>
+</h2>
+<label for="email">Email:</label>
+<input type="text" id="email" placeholder="your email" size="30">
+<br>
+<label for="pwd">Password:</label>
+<input type="password" id="pwd" placeholder="your password" size="25">
+<br>
+<div class="btn" onclick="go()">Go!</div>
+</body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script>
+  var email, pwd;
+  const UPDATEINTERVAL = 30000;
+
+  function refreshPage(userDevData, mode) {
+    if (mode) {
+      $("h2").detach();
+      $("input").detach();
+      $("label").detach();
+      $(".btn").detach();
+      $("body").append("<h2>Your devices:</h2>");
+    } else {
+      $("table").detach();
+    }
+
+    var tbl="<table>";
+    tbl += '<col width="150">';
+    tbl += '<col width="200">';
+    tbl += '<col width="70">';
+    tbl += '<tr>';
+    tbl += '<th>Device id</th>';
+    tbl += '<th>Description</th>';
+    tbl += '<th>State</th>';
+    tbl += '<th>Switch</th>';
+    tbl += '</tr>';
+
+    for(var i=0; i<userDevData.length; i++){
+      var id=userDevData[i].device_id;
+      var onClickStr="changeDescr(\'"+id+"\')";
+//      $("body").append("<div class='hovered' "+onClickStr+"> Device id "+userDevData[i].device_id+", state "+userDevData[i].device_state+"</div>");//.addClass('hovered');
+      tbl += '<tr>';
+      tbl += '<td>'+userDevData[i].device_id+'</td>';
+      tbl += '<td onclick="'+onClickStr+'>'+'<div class="hovered" id="descr'+id+'">'+userDevData[i].description+'</div>'+'</td>';
+      var stateStr= (userDevData[i].device_state==1) ? "on" : "-";
+      tbl += '<td><div id="st'+id+'">'+stateStr+'</div></td>';
+      var classOnOff = (userDevData[i].device_state==1) ? "switchOff" : "switchOn";
+      onClickStr = "switchDev(\'"+id+"\')";
+      tbl += '<td><div class="'+classOnOff+'" onclick="'+onClickStr+'"></td>';
+      tbl += '</tr>';
+    }
+    tbl += '</table>';
+    $("body").append(tbl);
+  }
+
+  function go(){
+    email=document.getElementById("email").value;
+    pwd=document.getElementById("pwd").value;
+    $.ajax({
+      type: "POST",
+      url: "/login",
+      data: {"data": JSON.stringify({"email":email, "pwd":pwd})},
+      success: function(msg){
+        console.log( "Data sent & received answer: ", msg );
+        if (msg.state == "ok"){
+          refreshPage(msg.userdata, 1);
+
+          var periodicalUpdate = function() {
+            console.log("ask server for updated states");
+            $.ajax({
+              type: "POST",
+              url: "/login",
+              data: {"data": JSON.stringify({"email": email, "pwd": pwd})},
+              success: function (msg) {
+                refreshPage(msg.userdata);
+              }
+            });
+          };
+
+          setInterval(periodicalUpdate, UPDATEINTERVAL);
+        } else {
+          $(".btn").append("<h3>Wrong passwrod or e-mail</h3>");
+        }
+      }
+    });
+  }
+
+  function changeDescr(id){
+    console.log("change descr for id", id);
+    var descr = prompt("Enter description for "+id, $("#descr"+id).text());
+    console.log("New descr", descr);
+    $("#descr"+id).text(descr);
+    $.ajax({
+      type: "POST",
+      url: "/updtdescr",
+      data: {"id": id, "descr": descr, "email":email, "pwd":pwd},
+      success: function(msg){
+        console.log( "Data sent & received answer: ", msg );
+      }
+    });
+  }
+
+  function switchDev(id) {
+    var curState=$("#st"+id).text();
+    console.log("switch dev "+id, "current state ",curState);
+    $.ajax({
+      type: "POST",
+      url: "/switch",
+      data: {"id": id, "curState": curState, "email":email, "pwd":pwd},
+      success: function (msg) {
+        console.log(msg);
+      }
+    });
+  }
+
+  function test(){
+    console.log("test");
+  }
+</script>
+</html>
