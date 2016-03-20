@@ -46,6 +46,7 @@
       table td, th {
         border-style: solid;
         border-color: black;
+        height: 40px;
       }
       .switchOn {
         width: 30px;
@@ -53,6 +54,7 @@
         background: url("http://images.clipshrine.com/download/wheel/large-Power-On-Off-Switch-red-2-166.6-14387.png") no-repeat center;
         background-size: 30px;
         margin: auto;
+        cursor: pointer;
       }
       .switchOff {
         width: 30px;
@@ -60,6 +62,31 @@
         background: url("http://2014.igem.org/wiki/images/c/c2/Heidelberg_Toolbox_On-Off.png") no-repeat center;
         background-size: 30px;
         margin: auto;
+        cursor: pointer;
+      }
+      .switchOn:active {
+        border: solid;
+        border-width: thick;
+        border-color: blue;
+        border-radius: 2em;
+      }
+      .switchOff:active {
+        border: solid;
+        border-width: thick;
+        border-color: blue;
+        border-radius: 2em;
+      }
+      .btnRefresh {
+        margin: auto;
+        margin-top: 1em;
+        width: 10em;
+        height: 2em;
+        background-color: darkseagreen;
+        cursor: pointer;
+        padding-top: 1em;
+      }
+      .btnRefresh:active {
+        background-color: blue;
       }
     </style>
 </head>
@@ -80,6 +107,18 @@
   var email, pwd;
   const UPDATEINTERVAL = 30000;
 
+  var periodicalUpdate = function() {
+    console.log("ask server for updated states");
+    $.ajax({
+      type: "POST",
+      url: "/login",
+      data: {"data": JSON.stringify({"email": email, "pwd": pwd})},
+      success: function (msg) {
+        refreshPage(msg.userdata);
+      }
+    });
+  };
+
   function refreshPage(userDevData, mode) {
     if (mode) {
       $("h2").detach();
@@ -89,6 +128,7 @@
       $("body").append("<h2>Your devices:</h2>");
     } else {
       $("table").detach();
+      $(".btnRefresh").detach();
     }
 
     var tbl="<table>";
@@ -105,10 +145,9 @@
     for(var i=0; i<userDevData.length; i++){
       var id=userDevData[i].device_id;
       var onClickStr="changeDescr(\'"+id+"\')";
-//      $("body").append("<div class='hovered' "+onClickStr+"> Device id "+userDevData[i].device_id+", state "+userDevData[i].device_state+"</div>");//.addClass('hovered');
       tbl += '<tr>';
       tbl += '<td>'+userDevData[i].device_id+'</td>';
-      tbl += '<td onclick="'+onClickStr+'>'+'<div class="hovered" id="descr'+id+'">'+userDevData[i].description+'</div>'+'</td>';
+      tbl += '<td onclick="'+onClickStr+'">'+'<div class="hovered" id="descr'+id+'">'+userDevData[i].description+'</div>'+'</td>';
       var stateStr= (userDevData[i].device_state==1) ? "on" : "-";
       tbl += '<td><div id="st'+id+'">'+stateStr+'</div></td>';
       var classOnOff = (userDevData[i].device_state==1) ? "switchOff" : "switchOn";
@@ -118,6 +157,7 @@
     }
     tbl += '</table>';
     $("body").append(tbl);
+    $("body").append("<div class='btnRefresh' onclick='periodicalUpdate()'>Refresh</di>");
   }
 
   function go(){
@@ -131,19 +171,6 @@
         console.log( "Data sent & received answer: ", msg );
         if (msg.state == "ok"){
           refreshPage(msg.userdata, 1);
-
-          var periodicalUpdate = function() {
-            console.log("ask server for updated states");
-            $.ajax({
-              type: "POST",
-              url: "/login",
-              data: {"data": JSON.stringify({"email": email, "pwd": pwd})},
-              success: function (msg) {
-                refreshPage(msg.userdata);
-              }
-            });
-          };
-
           setInterval(periodicalUpdate, UPDATEINTERVAL);
         } else {
           $(".btn").append("<h3>Wrong passwrod or e-mail</h3>");

@@ -1,9 +1,10 @@
 var PORT = "6616";
 
-//var HOST = '127.0.0.1';
-var HOST = '54.213.253.8';
+var HOST = '127.0.0.1';
+//var HOST = '54.213.253.8';
 
-var testMsg="id=pw5ccf7f059303&login=opinionbutton.shpp&pass=idtest&status=off";
+//var testMsg="id=pw5ccf7f059305&login=opinionbutton.shpp&pass=idtest&status=on";
+var testMsg="id=pw5ccf7f059304&login=opinionbutton.shpp&pass=idtest&key=off";
 
 var net=require("net");
 var clientSocket=new net.Socket();

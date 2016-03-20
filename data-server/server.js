@@ -12,7 +12,6 @@ var con = mysql.createConnection({
   password: "qwe123",
   database: "wifipilot"
 });
-
 con.connect(function (err) {
   if (err) {
     console.log('Error connecting to Db.');
@@ -22,8 +21,8 @@ con.connect(function (err) {
 });
 
 var PORT = 6616;
-
 var net = require("net");
+var arDevCmdId=[], arDevCmd=[];
 
 net.createServer(function (socket) {
   var msg = "Incoming connetion established with " + socket.remoteAddress + ":" + socket.remotePort;
@@ -32,10 +31,10 @@ net.createServer(function (socket) {
   socket.on("data", function (data) {
     var logMsg = " from " + this.remoteAddress + ':' + this.remotePort + ' received msg: \"' + data + '\"';
     console.log("msg " + logMsg);
-    socket.write("ok");
-    socket.end();
 
     data=""+data;
+    data.replace("\n","");
+    data.replace(new RegExp('\r?\n','g'),"");
 
     var data_ar=data.split("&");
     var data_obj={};
@@ -43,9 +42,35 @@ net.createServer(function (socket) {
       var rec=data_ar[i].split("=");
       data_obj[rec[0]]=rec[1];
     }
+
     console.log("Incoming data decoded to:", data_obj);
 
+    var cmdPos = arDevCmdId.indexOf(data_obj.id);
+    if (cmdPos > -1){
+      if(data_obj.key){ // set new status & annulate previous command
+        socket.write("key="+data_obj.key);
+        console.log("writing to socket: '"+"key="+data_obj.key+"'");
+        arDevCmd.splice(cmdPos, 1);
+        arDevCmdId.splice(cmdPos, 1);
+        data_obj.status = data_obj.key;
+        console.log("Key command received for", data_obj.id, "Remove last command. Status set to", data_obj.status);
+      } else {
+        socket.write(arDevCmd[cmdPos]);
+        console.log("Sending command "+arDevCmd[cmdPos]+" for", data_obj.id);
+        arDevCmd.splice(cmdPos, 1);
+        arDevCmdId.splice(cmdPos, 1)
+      }
+    } else {
+      if (data_obj.key) {
+        data_obj.status = data_obj.key;
+        console.log("Key command received for", data_obj.id, "Status set to", data_obj.status);
+      }
+      socket.write("ok");
+    }
+    socket.end();
+
     changeDevState(data_obj);
+
   });
 
   socket.on("close", function () {
@@ -119,12 +144,17 @@ function changeDevState(dataObj) {
     return;
   }
   var state = dataObj.status;
-  if (state=='off') {
-    state = 0;
+  if (state){
+    console.log("state updating");
+    if (state.substr(0,3)=='off') {
+      state = 0;
+    } else {
+      state = 1;
+    }
+    updateDevState(id, state);
   } else {
-    state = 1;
+    console.log("Error. No state in tcp packet. Ignored.");
   }
-  updateDevState(id, state);
 }
 
 var app = express();
@@ -209,11 +239,22 @@ app.post('/login', function(req, res) {
 
 app.post('/updtdescr', function(req, res) {
 
-  var data={id: req.body.id, descr: req.body.descr};
-  console.log("Incoming update description request: ", data);
+  function updtDescr(id, descr) {
+    return function(cb){
+      con.query('UPDATE userdevices SET description = ? WHERE device_id = ?', [descr, id], function (err, result) {
+        if (err) {
+          console.log('Error on Update Descr');
+        } else {
+          console.log("Description for " + id + " is updated to " + descr);
+        }
+        cb();
+      })
+    }}
+
+  console.log("Incoming update description request:", req.body);
 
   var sendAnswer=async(function(){
-    var result = await (updtDescr (data));
+    var result = await (updtDescr (req.body.id, req.body.descr));
     if (result==true) {
       res.statusCode = 200;
       res.statusMessage = 'data updated';
@@ -231,81 +272,31 @@ app.post('/switch', function(req, res) {
 
   console.log("Incoming switch request: ", req.body);
 
+  var cmd = (req.body.curState=="-") ? "status=on" : "status=off";
+  var cmdPos=arDevCmdId.indexOf(req.body.id);
+
+  if(cmdPos==-1){
+    console.log("pushing cmd "+cmd+" for "+req.body.id);
+    arDevCmd.push(cmd);
+    arDevCmdId.push(req.body.id);
+  } else {
+    console.log("device "+req.body.id+" already has command in queue. Try updating.");
+    if (arDevCmd[cmdPos]==cmd) {
+      console.log ("command equal to previous, ignored");
+    } else {
+      console.log ("command updated to "+cmd);
+      arDevCmd[cmdPos]=cmd;
+    }
+  }
 
   res.statusCode = 200;
   res.statusMessage = 'switch request send to device';
 
   res.setHeader('Content-Type', 'application/json');
-  res.json({state: result});
+  res.json({state: "ok"});
 
 });
 
 var port=6617;
 app.listen(port);//process.env.PORT
 console.log("Listening http port: "+port);
-
-/*
-
- sending answer wol=on&00:1d:60:20:c1:9b
- connection closed
- Incoming connetion established with ::ffff:195.149.108.51:30353
- msg  from ::ffff:195.149.108.51:30353 recieved msg: "id=pw5ccf7f059304&login=opinionbutton.shpp&pass=idtest&status=off
- "
- sending answer wol=on&00:1d:60:20:c1:9b
- Incoming connetion established with ::ffff:195.149.108.51:21868
- msg  from ::ffff:195.149.108.51:21868 recieved msg: "id=pw5ccf7f059304&login=opinionbutton.shpp&pass=idtest&wol=ok
- "
- sending answer wol=on&00:1d:60:20:c1:9b
- connection closed
- connection closed
- Incoming connetion established with ::ffff:195.149.108.51:33140
- msg  from ::ffff:195.149.108.51:33140 recieved msg: "id=pw5ccf7f059304&login=opinionbutton.shpp&pass=idtest&status=off
- "
- sending answer wol=on&00:1d:60:20:c1:9b
- Incoming connetion established with ::ffff:195.149.108.51:24404
- msg  from ::ffff:195.149.108.51:24404 recieved msg: "id=pw5ccf7f059304&login=opinionbutton.shpp&pass=idtest&wol=ok
- "
- sending answer wol=on&00:1d:60:20:c1:9b
- connection closed
- connection closed
- Incoming connetion established with ::ffff:195.149.108.51:10537
- msg  from ::ffff:195.149.108.51:10537 recieved msg: "id=pw5ccf7f059304&login=opinionbutton.shpp&pass=idtest&alarm=ok
- "
- sending answer something
- connection closed
- Incoming connetion established with ::ffff:195.149.108.51:7854
- msg  from ::ffff:195.149.108.51:7854 recieved msg: "id=pw5ccf7f059304&login=opinionbutton.shpp&pass=idtest&status=on
- "
- sending answer something
- connection closed
- Incoming connetion established with ::ffff:195.149.108.51:7879
- msg  from ::ffff:195.149.108.51:7879 recieved msg: "id=pw5ccf7f059304&login=opinionbutton.shpp&pass=idtest&status=on
- "
- sending answer something
- connection closed
-
- ^C
- ubuntu@ip-172-31-44-14:~/server$ node serv2.js
- Incoming connetion established with ::ffff:195.149.108.51:7882
- msg  from ::ffff:195.149.108.51:7882 recieved msg: "id=pw5ccf7f059304&login=opinionbutton.shpp&pass=idtest&status=on
- "
- sending answer wol=on&00:1d:60:20:c1:9b
- connection closed
- Incoming connetion established with ::ffff:195.149.108.51:30353
- msg  from ::ffff:195.149.108.51:30353 recieved msg: "id=pw5ccf7f059304&login=opinionbutton.shpp&pass=idtest&status=off
- "
- sending answer wol=on&00:1d:60:20:c1:9b
- Incoming connetion established with ::ffff:195.149.108.51:21868
- msg  from ::ffff:195.149.108.51:21868 recieved msg: "id=pw5ccf7f059304&login=opinionbutton.shpp&pass=idtest&wol=ok
- "
- sending answer wol=on&00:1d:60:20:c1:9b
- connection closed
- connection closed
- Incoming connetion established with ::ffff:195.149.108.51:33140
- msg  from ::ffff:195.149.108.51:33140 recieved msg: "id=pw5ccf7f059304&login=opinionbutton.shpp&pass=idtest&status=off
- "
- sending answer wol=on&00:1d:60:20:c1:9b
- Incoming connetion established with ::ffff:195.149.108.51:24404
- msg  from ::ffff:195.149.108.51:24404 recieved msg: "id=pw5ccf7f059304&login=opinionbutton.shpp&pass=idtest&wol=ok
-
- */
