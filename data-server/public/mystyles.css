@@ -1,0 +1,84 @@
+body{
+  width: 80%;
+  height: 80%;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  background: lightblue url('./img/wifi.png') no-repeat center 250px;
+  /*background: lightblue url("http://apkis.net/uploads/posts/2014-08/1408436284-30711.png") no-repeat center;*/
+}
+.btn{
+  width: 15em;
+  margin: auto;
+  height: 3em;
+  line-height: 3em;
+  color: blue;
+  background-color: greenyellow;
+  vertical-align: middle;
+  text-align: center;
+  cursor: pointer;
+  margin-top: 1em;
+  border-style: outset;
+}
+input{
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+.hovered {
+  cursor: pointer;
+}
+table {
+  text-align:center;
+  background-color: #abef98;
+  border-style: solid;
+  border-color: black;
+  /*border-radius: 1em;*/
+  border-collapse: collapse;
+  margin-left: auto;
+  margin-right: auto;
+}
+table td, th {
+  border-style: solid;
+  border-color: black;
+  height: 40px;
+}
+.switchOn {
+  width: 30px;
+  height: 30px;
+  background: url("http://images.clipshrine.com/download/wheel/large-Power-On-Off-Switch-red-2-166.6-14387.png") no-repeat center;
+  background-size: 30px;
+  margin: auto;
+  cursor: pointer;
+}
+.switchOff {
+  width: 30px;
+  height: 30px;
+  background: url("http://2014.igem.org/wiki/images/c/c2/Heidelberg_Toolbox_On-Off.png") no-repeat center;
+  background-size: 30px;
+  margin: auto;
+  cursor: pointer;
+}
+.switchOn:active {
+  border: solid;
+  border-width: thick;
+  border-color: blue;
+  border-radius: 2em;
+}
+.switchOff:active {
+  border: solid;
+  border-width: thick;
+  border-color: blue;
+  border-radius: 2em;
+}
+.btnRefresh {
+  margin: auto;
+  margin-top: 1.5em;
+  width: 10em;
+  height: 3em;
+  background-color: darkseagreen;
+  cursor: pointer;
+  padding-top: 0.5em;
+}
+.btnRefresh:active {
+  background-color: blue;
+}

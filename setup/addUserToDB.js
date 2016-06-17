@@ -17,7 +17,8 @@ con.connect(function (err) {
   console.log('Connection to DB established');
 
   var dataSet = {
-    email : "ttt@ttt.tt",
+    id: 0,
+    email : "admin",
     pwd   : "123"
   };
 

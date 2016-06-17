@@ -1,0 +1,11 @@
+{
+  "name": "wifi-pilot",
+  "version": "0.0.1",
+  "dependencies": {
+    "asyncawait": "^1.0.3",
+    "body-parser": "^1.15.1",
+    "express": "^4.13.4",
+    "mysql": "^2.11.1",
+    "net": "^1.0.2"
+  }
+}

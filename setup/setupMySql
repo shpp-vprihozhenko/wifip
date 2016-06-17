@@ -1,0 +1,3 @@
+sudo apt-get install mysql-server
+echo pwd = qwe123
+mysql -u root -p -e CREATE DATABASE IF NOT EXISTS wifipilot

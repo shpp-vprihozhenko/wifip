@@ -1,0 +1,8 @@
+{
+  "tcpPort":      6616,
+  "httpPort":     6617,
+  "sql_host":     "localhost",
+  "sql_user":     "root",
+  "sql_password": "qwe123",
+  "sql_database": "wifipilot"
+}
