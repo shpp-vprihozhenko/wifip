@@ -1,0 +1,34 @@
+/* app css stylesheet */
+
+body {
+  text-align: center;
+  width: 60%;
+  margin: auto;
+  background: lightblue url('./img/wifi.png') no-repeat 10% 0%;
+}
+
+.btn {
+  /*height: 3em;*/
+  background: lightskyblue;
+  padding: 1em 2em;
+  font-size: large;
+}
+
+.btn2 {
+    border-radius: 1em;
+    padding: 0.2em;
+    margin: 0.3em;
+}
+.btn2:hover {
+    background-color: white;;
+}
+table th {
+    border: 1px solid black;;
+}
+table td {
+    border: 1px solid black;;
+}
+.changeable:hover{
+    cursor: pointer;
+    background-color: white;;
+}

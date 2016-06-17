@@ -1,0 +1,22 @@
+Hello, {{email}}. Here is your device manager page.<br>
+
+Your devices:<br>
+<button class="btn2" ng-click="refreshData()">Refresh</button>
+<div class="tbl" style="width: 80%; margin: 0 auto;" >
+    <table style="width: 100%">
+        <th style="width: 20%" >Device id</th>
+        <th style="width: 50%">Description</th>
+        <th style="width: 10%">State</th>
+        <th style="width: 20%">Buttons</th>
+        <tr ng-repeat="data in retDevData()">
+            <td>{{data.device_id}}</td>
+            <td class="changeable" ng-click="changeDevDescr(data)">{{data.description}}</td>
+            <td>
+                <img src="../img/offLamp.png" style="width:50px" ng-show="data.device_state==0">
+                <img src="../img/onLamp.png" style="width:50px" ng-show="data.device_state==1">
+            </td>
+            <td><button class="btn2" ng-click="turnOnOff(data.device_id, 1)">Turn on</button>
+                <button class="btn2" ng-click="turnOnOff(data.device_id, 0)">Turn off</button> </td>
+        </tr>
+    </table>
+</div>

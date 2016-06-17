@@ -1,0 +1,21 @@
+<style>
+</style>
+
+Hello, {{email}}. Users list manager ready for you<br>
+
+<button class="btn2" ng-click="addUser()">Add new user</button>
+<button class="btn2" ng-click="goBack()">Go to device manager page</button></td>
+
+<div class="tbl" style="width: 80%; margin: 0 auto;" >
+    <table style="width: 100%">
+        <th style="width: 10%" >id</th>
+        <th style="width: 50%">email</th>
+        <th style="width: 40%">Buttons</th>
+        <tr ng-repeat="data in retUsersData()">
+            <td>{{data.id}}</td>
+            <td ng-click="changeEmail(data)" class="changeable">{{data.email}}</td>
+            <td><button class="btn2" ng-click="resetPwd(data.id)">reset PWD</button>
+                <button class="btn2" ng-click="deleteUser(data.id)">X</button></td>
+        </tr>
+    </table>
+</div>

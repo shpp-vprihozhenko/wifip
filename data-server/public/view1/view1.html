@@ -1,0 +1,19 @@
+Hello, {{email}}. Here is device manager page.<br>
+<!--{{password}}<br>-->
+<button ng-show="ifAdmin()" ng-click="showUsers()" class="btn2">Open user's page</button><br>
+Devices data:<br>
+
+<div class="tbl" style="width: 80%; margin: 0 auto;" >
+    <table style="width: 100%">
+        <th style="width: 20%" >Device id</th>
+        <th style="width: 50%">Description</th>
+        <th style="width: 15%">State</th>
+        <th style="width: 15%">User Id</th>
+        <tr ng-repeat="data in retDevData()">
+            <td>{{data.device_id}}</td>
+            <td class="changeable" ng-click="changeDevDescr(data)">{{data.description}}</td>
+            <td>{{data.device_state}}</td>
+            <td class="changeable" ng-click="changeLink(data)">{{data.user_id}}</td>
+        </tr>
+    </table>
+</div>
