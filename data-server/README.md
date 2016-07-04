@@ -1,4 +1,4 @@
-# Data-server
+# WiFi data-server
 
 ## Installation
 
@@ -11,14 +11,6 @@ Config file:
 Install project
 ```shell
 npm install
-
-start with default settings
-npm start
-
-or
-
-run with the environment variables
-NODE_ENV=development DB_DATABASE=... npm start
 
 See the configuration file - ./libs/config.js
 ```
