@@ -1,4 +1,6 @@
-# Data-server
+# WiFi-pilot data-server
+ - receive & save data from WiFi-pilots via TCP-sockets;
+ - support web-site with device-control panel for users & admin;
 
 ## Installation
 
